@@ -101,12 +101,12 @@ class UR5Robot:
         assert waypoints.shape[1] == 6, "dimension of waypoints must be Nx6"
         if vels is None:
             vels = np.ones(waypoints.shape[0]).reshape(-1, 1) * 0.1
-        elif type(vels) is float:
+        elif type(vels) in [float, int]:
             vels = np.ones(waypoints.shape[0]).reshape(-1, 1) * vels
 
         if accs is None:
             accs = np.ones(waypoints.shape[0]).reshape(-1, 1) * 0.1
-        elif type(accs) is float:
+        elif type(accs) in [float, int]:
             accs = np.ones(waypoints.shape[0]).reshape(-1, 1) * accs
 
         if blends is None:
@@ -260,8 +260,21 @@ class UR5Robot:
     def stop_freedrive(self):
         return self.ur_c.endfreedriveMode()
 
-    def force_mode(self, task_frame, selection_vector, wrench, type, limits):
-        return self.ur_c.forceMode(task_frame, selection_vector, wrench, type, limits)
+    def force_mode(
+        self,
+        task_frame,
+        selection_vector,
+        wrench,
+        type,
+        limits,
+        damping=0.005,
+    ):
+        return self.ur_c.forceMode(
+            task_frame, selection_vector, wrench, type, limits
+        ) and self.ur_c.forceModeSetDamping(damping)
+
+    def force_mode_set_damping(self, damping: float):
+        return self.ur_c.forceModeSetDamping(damping)
 
     def end_force_mode(self):
         return self.ur_c.forceModeStop()
@@ -272,11 +285,14 @@ class UR5Robot:
     def end_jog_mode(self):
         return self.ur_c.jogStop()
 
-    def stop_joint(self, a: float = 2.0, asynchronous: bool = False):
+    def stop_joint(self, a: float = 10.0):
         self.ur_c.servoStop(a)
 
     def stop_tool(self, a: float = 10.0, asynchronous: bool = False):
         self.ur_c.stopL(a, asynchronous)
+
+    def get_current_force(self):
+        return self.ur_r.getActualTCPForce()
 
     # def kill(self):
     #     self.ur_c.disconnect()
