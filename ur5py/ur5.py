@@ -3,6 +3,7 @@ import rtde_control
 import rtde_receive
 import rtde_io
 from ur5py.robotiq_gripper_control import RobotiqGripper
+from ur5py.socket_robotiq import SocketRobotiq
 import time
 import numpy as np
 import pdb
@@ -26,12 +27,16 @@ def UR2RT(pose: List):
 
 
 class UR5Robot:
-    def __init__(self, ip="172.22.22.3", gripper=False):
+    def __init__(self, ip="172.22.22.3", gripper: [bool, int] = False):
+        gripper = int(gripper)
+        self.ip = ip
         self.ur_c = rtde_control.RTDEControlInterface(ip)
         self.ur_r = rtde_receive.RTDEReceiveInterface(ip)
         self.ur_io = rtde_io.RTDEIOInterface(ip)
-        if gripper:
+        if gripper == 1:
             self.gripper = RobotiqGripper(self.ur_c)
+        elif gripper == 2:
+            self.gripper = SocketRobotiq(ip)
 
     def servo_joint(self, target, time=0.002, lookahead_time=0.1, gain=300):
         """
@@ -63,12 +68,21 @@ class UR5Robot:
             raise KeyError("interpolation muct be in joint or tcp space")
 
     def move_pose(
-        self, target: RigidTransform, interp="joint", vel=0.1, acc=1, asyn=False
+        self,
+        target: [RigidTransform, List],
+        interp="joint",
+        vel=0.1,
+        acc=1,
+        asyn=False,
+        convert=True,
     ):
         """
         target in Rigidtransform being converted to: x,y,z,rx,ry,rz
         """
-        pos = RT2UR(target)
+        if convert:
+            pos = RT2UR(target)
+        else:
+            pos = target
         if interp == "joint":
             self.ur_c.moveJ_IK(pos, vel, acc, asyn)
         elif interp == "tcp":
@@ -164,8 +178,11 @@ class UR5Robot:
             blends = np.ones(waypoints.shape[0]) * blends
         self.ur_c.moveL(path, asyn)
 
-    def set_tcp(self, tcp: RigidTransform):
-        self.ur_c.setTcp(RT2UR(tcp))
+    def set_tcp(self, tcp: [RigidTransform, List], convert=True):
+        if convert:
+            self.ur_c.setTcp(RT2UR(tcp))
+        else:
+            self.ur_c.setTcp(tcp)
 
     def get_joints(self):
         q = self.ur_r.getActualQ()
@@ -294,21 +311,41 @@ class UR5Robot:
     def get_current_force(self):
         return self.ur_r.getActualTCPForce()
 
-    # def kill(self):
-    #     self.ur_c.disconnect()
+    def change_gripper(self, gripper_type: int):
+        """
+        Changes the type of gripper
+
+        Type 1 uses robotiq preamble
+        Type 2 uses socket connection
+        """
+        if gripper_type == 1:
+            self.gripper = RobotiqGripper(self.ur_c)
+        elif gripper_type == 2:
+            self.gripper = SocketRobotiq(self.ip)
+        else:
+            self.gripper = None
+
+    def kill(self):
+        self.ur_c.disconnect()
+
+    def set_playload(self, mass: float, center_of_gravity: List = []):
+        self.ur_c.setPayload(mass, center_of_gravity)
+
+    def get_fk(self, joint_angles):
+        self.ur_c.getForwardKinematics(joint_angles, [])
 
 
-if __name__ == "__main__":
-    ur = UR5Robot()
-    ur.set_tcp(RigidTransform(translation=[0, 0.0, 0.07]))
-    start_pose = ur.get_pose()
-    wps, vels, accs, blends = [], [], [], []
-    for dx in [-0.1, 0.1, 0]:
-        newpose = start_pose.copy()
-        newpose.translation[0] += dx
-        wps.append(newpose)
-        vels.append(0.3)
-        accs.append(2)
-        blends.append(0.01)
-    ur.move_tcp_path(wps, vels, accs, blends)
-    print("Done")
+# if __name__ == "__main__":
+#     ur = UR5Robot()
+#     ur.set_tcp(RigidTransform(translation=[0, 0.0, 0.07]))
+#     start_pose = ur.get_pose()
+#     wps, vels, accs, blends = [], [], [], []
+#     for dx in [-0.1, 0.1, 0]:
+#         newpose = start_pose.copy()
+#         newpose.translation[0] += dx
+#         wps.append(newpose)
+#         vels.append(0.3)
+#         accs.append(2)
+#         blends.append(0.01)
+#     ur.move_tcp_path(wps, vels, accs, blends)
+#     print("Done")

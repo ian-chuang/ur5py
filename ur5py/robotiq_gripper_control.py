@@ -22,17 +22,10 @@ class RobotiqGripper(object):
         """
         self.rtde_c = rtde_c
 
-    def call(self, script_name, script_function, blocking=True):
-        if blocking:
-            return self.rtde_c.sendCustomScriptFunction(
-                "ROBOTIQ_" + script_name, ROBOTIQ_PREAMBLE + script_function
-            )
-        else:
-            Thread(
-                target=lambda: self.rtde_c.sendCustomScriptFunction(
-                    "ROBOTIQ_" + script_name, ROBOTIQ_PREAMBLE + script_function
-                ),
-            ).start()
+    def call(self, script_name, script_function):
+        return self.rtde_c.sendCustomScriptFunction(
+            "ROBOTIQ_" + script_name, ROBOTIQ_PREAMBLE + script_function
+        )
 
     def activate(self):
         """
@@ -69,7 +62,7 @@ class RobotiqGripper(object):
         """
         return self.call("SET_FORCE", "rq_set_force_norm(" + str(force) + ")")
 
-    def move(self, pos_in_mm, blocking=True):
+    def move(self, pos_in_mm):
         """
         Move the gripper to a specified position in (mm).
 
@@ -79,31 +72,22 @@ class RobotiqGripper(object):
         Returns:
             True if the command succeeded, otherwise it returns False
         """
-        if blocking:
-            return self.call("MOVE", "rq_move_and_wait_mm(" + str(pos_in_mm) + ")")
-        else:
-            self.call("MOVE", "rq_move(" + str(pos_in_mm) + ")", blocking=False)
+        self.call("MOVE", "rq_move(" + str(pos_in_mm) + ")")
 
-    def open(self, blocking=True):
+    def open(self):
         """
         Open the gripper.
 
         Returns:
             True if the command succeeded, otherwise it returns False
         """
-        if blocking:
-            return self.call("OPEN", "rq_open_and_wait()")
-        else:
-            self.call("OPEN", "rq_open()", blocking=False)
+        return self.call("OPEN", "rq_open()")
 
-    def close(self, blocking=True):
+    def close(self):
         """
         Close the gripper.
 
         Returns:
             True if the command succeeded, otherwise it returns False
         """
-        if blocking:
-            return self.call("CLOSE", "rq_close_and_wait()")
-        else:
-            self.call("CLOSE", "rq_close()", blocking=False)
+        return self.call("CLOSE", "rq_close_and_wait()")
