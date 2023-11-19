@@ -48,12 +48,20 @@ class UR5Robot:
         """
         self.ur_c.servoJ(target, 0, 0, time, lookahead_time, gain)
 
-    def servo_pose(self, target, time=0.002, lookahead_time=0.1, gain=300):
+    def servo_pose(
+        self,
+        target,
+        time=0.002,
+        lookahead_time=0.1,
+        gain=300,
+        convert=True,
+    ):
         """
         target in Rigidtransform being converted to: x,y,z,rx,ry,rz
         """
-        pos = RT2UR(target)
-        self.ur_c.servoL(pos, time=time, lookahead_time=lookahead_time, gain=gain)
+        if convert:
+            target = RT2UR(target)
+        self.ur_c.servoL(target, 0, 0, time, lookahead_time, gain)
 
     def move_joint(self, target, interp="joint", vel=1.0, acc=1, asyn=False):
         """
