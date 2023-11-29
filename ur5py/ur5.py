@@ -27,7 +27,9 @@ def UR2RT(pose: List):
 
 
 class UR5Robot:
-    def __init__(self, ip="172.22.22.3", gripper: [bool, int] = False):
+    def __init__(
+        self, ip="172.22.22.3", gripper: [bool, int] = False, gripper_port=63352
+    ):
         gripper = int(gripper)
         self.ip = ip
         self.ur_c = rtde_control.RTDEControlInterface(ip)
@@ -36,7 +38,7 @@ class UR5Robot:
         if gripper == 1:
             self.gripper = RobotiqGripper(self.ur_c)
         elif gripper == 2:
-            self.gripper = SocketRobotiq(ip)
+            self.gripper = SocketRobotiq(ip, gripper_port)
 
     def servo_joint(self, target, time=0.002, lookahead_time=0.1, gain=300):
         """
