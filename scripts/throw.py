@@ -27,6 +27,7 @@ end_pose[1] -= 0.4
 
 def helper_quintic(ini_start, ini_end, num):
     time = np.linspace(0, 1, num)
+    final_array = np.zeros((num, 6))
     for i in range(6):
         trajectory = quintic(ini_start[i], ini_end[i], time)
         positions = trajectory.q
@@ -36,6 +37,7 @@ def helper_quintic(ini_start, ini_end, num):
 
 def helper_trapezoidal(ini_start, ini_end, num):
     time = np.linspace(0, 1, num)
+    final_array = np.zeros((num, 6))
     for i in range(6):
         trajectory = trapezoidal(ini_start[i], ini_end[i], time)
         positions = trajectory.q
