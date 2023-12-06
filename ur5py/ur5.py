@@ -28,13 +28,18 @@ def UR2RT(pose: List):
 
 class UR5Robot:
     def __init__(
-        self, ip="172.22.22.3", gripper: [bool, int] = False, gripper_port=63352
+        self,
+        ip="172.22.22.3",
+        gripper: [bool, int] = False,
+        gripper_port=63352,
+        offset=[0, 0, 0, 0, 0, 0],
     ):
         gripper = int(gripper)
         self.ip = ip
         self.ur_c = rtde_control.RTDEControlInterface(ip)
         self.ur_r = rtde_receive.RTDEReceiveInterface(ip)
         self.ur_io = rtde_io.RTDEIOInterface(ip)
+        self.offset = offset
         if gripper == 1:
             self.gripper = RobotiqGripper(self.ur_c)
         elif gripper == 2:
@@ -48,6 +53,8 @@ class UR5Robot:
         lookahead_time: time [S], range [0.03,0.2] smoothens the trajectory with this lookahead time. A low value gives fast reaction, a high value prevents overshoot.
         gain: proportional gain for following target position, range [100,2000]. The higher the gain, the faster reaction the robot will have.
         """
+        for i in range(6):
+            target[i] += self.offset[i]
         self.ur_c.servoJ(target, 0, 0, time, lookahead_time, gain)
 
     def servo_pose(
@@ -70,6 +77,8 @@ class UR5Robot:
         the movej() command offers you a complete trajectory planning with acceleration, de-acceleration etc.
         It is designed for movements over greater distances.
         """
+        for i in range(6):
+            target[i] += self.offset[i]
         if interp == "joint":
             self.ur_c.moveJ(target, vel, acc, asyn)
         elif interp == "tcp":
