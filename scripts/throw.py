@@ -13,5 +13,7 @@ pdb.set_trace()
 for i, row in enumerate(poses):
     start_time = time.time()
     robot.servo_pose(row, time=0.004, convert=False)
+    if i == 500:
+        robot.gripper.open()
     if time.time - start_time < 0.004:
         pass
