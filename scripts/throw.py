@@ -2,6 +2,8 @@ from ur5py.ur5 import UR5Robot
 import numpy as np
 import time
 import pdb
+from roboticstoolbox.tools.trajectory import quintic
+from roboticstoolbox.tools.trajectory import trapezoidal
 
 robot = UR5Robot(ip="192.168.131.69", gripper=2)
 current_pose = np.array(robot.get_pose(convert=False))
