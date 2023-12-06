@@ -14,3 +14,33 @@ for row in poses:
     start_time = time.time()
     robot.servo_pose(row, time=0.02, convert=False)
     time.sleep(0.02)
+
+def helper_sine(ini_start, ini_end, num):
+    time = np.linspace(0, 1, num)
+    speed = np.sin(np.pi * time)
+    position = np.cumsum(speed)
+    scaled_position = position - position[0]
+    scaled_position = scaled_position / scaled_position[-1]
+    scaled_position = ini_start + (ini_end - ini_start)*scaled_position
+    #full_cycle_pos = np.concatenate((scaled_position, scaled_position[::-1]), axis=0)
+    full_cycle_pos = scaled_position
+    return full_cycle_pos
+
+def helper_quintic(ini_start, ini_end, num):
+    time = np.linspace(0, 1, num)
+    trajectory = quintic(ini_start, ini_end, time)
+    #positions = trajectory.y[:, 0]
+    positions = trajectory.q
+    #full_cycle_pos = np.concatenate((positions, positions[::-1]), axis=0)
+    full_cycle_pos = positions
+    return full_cycle_pos
+
+def helper_trapezoidal(ini_start, ini_end, num):
+    time = np.linspace(0, 1, num)
+    trajectory = trapezoidal(ini_start, ini_end, time)
+    #positions = trajectory.y[:, 0]
+    positions = trajectory.q
+    #full_cycle_pos = np.concatenate((positions, positions[::-1]), axis=0)
+    full_cycle_pos = positions
+    return full_cycle_pos
+###### Helper end
