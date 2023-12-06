@@ -13,21 +13,9 @@ end_pose = current_pose.copy()
 end_pose[1] -= 0.4
 
 
-# def helper_sine(ini_start, ini_end, num):
-#     time = np.linspace(0, 1, num)
-#     speed = np.sin(np.pi * time)
-#     position = np.cumsum(speed)
-#     scaled_position = position - position[0]
-#     scaled_position = scaled_position / scaled_position[-1]
-#     scaled_position = ini_start + (ini_end - ini_start) * scaled_position
-#     # full_cycle_pos = np.concatenate((scaled_position, scaled_position[::-1]), axis=0)
-#     full_cycle_pos = scaled_position
-#     return full_cycle_pos
-
-
 def helper_quintic(ini_start, ini_end, num):
     time = np.linspace(0, 1, num)
-    final_array = np.zeros((num, 6))
+    full_cycle_pos = np.zeros((num, 6))
     for i in range(6):
         trajectory = quintic(ini_start[i], ini_end[i], time)
         positions = trajectory.q
@@ -37,7 +25,7 @@ def helper_quintic(ini_start, ini_end, num):
 
 def helper_trapezoidal(ini_start, ini_end, num):
     time = np.linspace(0, 1, num)
-    final_array = np.zeros((num, 6))
+    full_cycle_pos = np.zeros((num, 6))
     for i in range(6):
         trajectory = trapezoidal(ini_start[i], ini_end[i], time)
         positions = trajectory.q
