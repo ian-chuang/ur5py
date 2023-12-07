@@ -5,6 +5,8 @@ import pdb
 from roboticstoolbox.tools.trajectory import quintic
 from roboticstoolbox.tools.trajectory import trapezoidal
 
+from autolab_core import RigidBodyTransform
+
 def find_waypoints(current_pose, start, goal, total_t):
     L = 0.8 # radius of dexterous sphere
     g = 9.8
@@ -14,6 +16,27 @@ def find_waypoints(current_pose, start, goal, total_t):
     #orientation = robot.get_pose(convert=False)[3:]
     orientation = current_pose[3:]
     
+    def find_release_orientation(launch_points):
+        # find the launch vector from a series of input locations
+        release_p = launch_points[0]
+        launch_vector = launch_points[1] - release_p
+        D = 0 - launch_vector[0] * release_p[0] - launch_vector[1] * release_p[1] - launch_vector[2] - release_p[2]
+        arb_point = np.array([0, 0, -D/launch_vector[2]]) # an arbitary point on the plane
+        v1_on_plane = release_p - arb_point
+        v2_on_plane = np.cross(v1_on_plane, launch_vector)
+        
+        # normalize
+        launch_vector = launch_vector / np.linalg.norm(launch_vector)
+        v1_on_plane = v1_on_plane / np.linalg.norm(v1_on_plane)
+        v2_on_plane = v2_on_plane / np.linalg.norm(v2_on_plane)
+        
+        # return 3x3 orientation matrix of the tool's pose
+        return np.vstack([launch_vector, v1_on_plane, v2_on_plane]).T
+    
+
+    #robot.get_pose().matrix # 4x4 matrix
+        
+        
     def find_pos(t, total_t, start, goal, g):
     # indicates the trajectory of the object once it is released with velocity and start position
     # assume velocity is the magnitude of launch
@@ -32,10 +55,15 @@ def find_waypoints(current_pose, start, goal, total_t):
         x, y, z, vi_x, vi_y, vi_z = find_pos(dt, total_t, start, goal, g)
         if (np.sqrt(x**2 + y**2 + z**2) < L):
             waypoints = [x, y, z]
-            waypoints.extend(orientation)
+            # waypoints.extend(orientation)
             poses.append(waypoints)
-            
-    return poses
+    
+    # create transformation matrix
+    m = np.eye(4)
+    m[:3, :3] = find_release_orientation(poses[50:])
+    m[:3, 3] = np.vstack(poses[0])
+    
+    return poses, m
 
 robot = UR5Robot(ip="192.168.131.69", gripper=2)
 current_pose = np.array(robot.get_pose(convert=False))
@@ -45,8 +73,12 @@ end_pose[1] -= 0.4
 start = current_pose[:3]
 goal = np.array([0, -3, 0])
 total_time = 1
-poses = find_waypoints(current_pose, start, goal, total_time)
-#poses = np.linspace(current_pose, end_pose, 250)
+poses_temp, m = find_waypoints(current_pose, start, goal, total_time)
+# transform m to end pose
+
+
+#poses = find_waypoints(current_pose, start, goal, total_time)
+poses = np.linspace(current_pose, end_pose, 250)
 pdb.set_trace()
 for i, row in enumerate(poses):
     print(i)
