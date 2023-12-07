@@ -56,17 +56,22 @@ def time_from_v(ini_pos, target_pos, target_v, time_per_step):
 def do_throw(robot: UR5Robot, end_pose, instant_vel):
     robot.move_pose(end_pose)
     instant_vel = np.array(instant_vel)
-    intermediate_pose = UR2RT(end_pose)
+    intermediate_pose = np.array(RT2UR(end_pose))
     intermediate_pose[:3] -= instant_vel / np.linalg.norm(instant_vel) * 0.3
     robot.move_pose(intermediate_pose, convert=False)
-    poses = time_from_v(intermediate_pose, end_pose, instant_vel, 0.002)
+    poses = time_from_v(
+        intermediate_pose, np.array(RT2UR(end_pose)), instant_vel, 0.002
+    )
+    poses = np.hstack(
+        [poses, np.repeat(intermediate_pose[3:].reshape(1, -1), len(poses), 0)]
+    )
     release = int(len(poses) // 2)
     for i, p in enumerate(poses):
         curr_time = time.time()
-        robot.servo_pose(p, time=0.002, convert=False)
+        robot.servo_pose(p, time=0.02, convert=False)
         if i == release:
             robot.gripper.open()
-        while time.time() - curr_time < 0.002:
+        while time.time() - curr_time < 0.02:
             pass
         if i > release + 300:
             break
