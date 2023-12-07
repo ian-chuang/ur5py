@@ -53,7 +53,7 @@ def do_throw(robot, end_pose, instant_vel):
     AB = B - A
     intermediate_pose[:3] = A + np.dot(AP, AB) / np.dot(AB, AB) * AB
     intermediate_pose[3:] = end_pose[3:]
-    poses = time_from_v(intermediate_pose, end_pose)
+    poses = time_from_v(intermediate_pose, end_pose, instant_vel, 0.002)
     release = int(len(poses) // 2)
     for i, p in poses:
         curr_time = time.time()
@@ -68,4 +68,4 @@ def do_throw(robot, end_pose, instant_vel):
 
 
 robot = UR5Robot(ip="192.168.131.69", gripper=2)
-do_throw(robot, [0.8, 0.8, 0], [0.05, 0, 0])
+do_throw(robot, [0.8, 0.8, 0, np.pi, 0, 0], [0.05, 0, 0])
