@@ -55,7 +55,11 @@ def do_throw(robot, end_pose, instant_vel):
     intermediate_pose[3:] = end_pose[3:]
     poses = time_from_v(intermediate_pose, end_pose, instant_vel, 0.002)
     release = int(len(poses) // 2)
-    for i, p in poses:
+    poses = np.hstack(
+        [poses, np.repeat(intermediate_pose[3:].reshape(-1, 1), len(poses), -1)]
+    )
+    robot.move_pose(intermediate_pose, convert=False)
+    for i, p in enumerate(poses):
         curr_time = time.time()
         robot.servo_pose(p, time=0.002, convert=False)
         if i == release:
