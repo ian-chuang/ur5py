@@ -66,11 +66,13 @@ def find_waypoints(current_pose, start, goal, total_t):
 
     # create transformation matrix
     m = np.eye(4)
-    #launch_points = np.array([[-0.6, 0.2, 0], [-0.7, 0.3, 0.2]])
+    # launch_points = np.array([[-0.6, 0.2, 0], [-0.7, 0.3, 0.2]])
     poses = np.array(poses)
-    m[:3, :3] = find_release_orientation(poses)
+    m[:3, :3] = np.array([[0, -1, 0], [1, 0, 0], [0, 0, 1]]) @ find_release_orientation(
+        poses
+    )
     m[:3, 3] = np.vstack(poses[0]).reshape(-1)
-    
+
     velocity = np.array([vi_x, vi_y, vi_z])
     return poses, m, velocity
 
@@ -86,6 +88,8 @@ total_time = 1
 poses_temp, m, v_i = find_waypoints(current_pose, start, goal, total_time)
 # transform m to end pose
 tsfm = RigidTransform(m[:3, :3], m[:3, 3])
+robot.move_pose(tsfm)
+tsfm.translation += v_i / np.linalg.norm(v_i) * 0.2
 robot.move_pose(tsfm)
 # poses = find_waypoints(current_pose, start, goal, total_time)
 poses = np.linspace(current_pose, end_pose, 250)
