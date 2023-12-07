@@ -66,11 +66,12 @@ def find_waypoints(current_pose, start, goal, total_t):
 
     # create transformation matrix
     m = np.eye(4)
-    launch_points = np.array([[-0.6, 0.2, 0], [-0.7, 0.3, 0.2]])
-    m[:3, :3] = find_release_orientation(launch_points)
-    m[:3, 3] = np.vstack(launch_points[0]).reshape(-1)
+    #launch_points = np.array([[-0.6, 0.2, 0], [-0.7, 0.3, 0.2]])
+    m[:3, :3] = find_release_orientation(poses)
+    m[:3, 3] = np.vstack(poses[0]).reshape(-1)
     
-    return poses, m
+    velocity = np.array([vi_x, vi_y, vi_z])
+    return poses, m, velocity
 
 
 robot = UR5Robot(ip="192.168.131.69", gripper=2)
@@ -78,10 +79,10 @@ current_pose = np.array(robot.get_pose(convert=False))
 
 end_pose = current_pose.copy()
 end_pose[1] -= 0.4
-start = current_pose[:3]
+start = np.array([[-0.6, 0.2, 0]])
 goal = np.array([0, -3, 0])
 total_time = 1
-poses_temp, m = find_waypoints(current_pose, start, goal, total_time)
+poses_temp, m, v_i = find_waypoints(current_pose, start, goal, total_time)
 # transform m to end pose
 tsfm = RigidTransform(m[:3, :3], m[:, 3])
 robot.move_pose(tsfm)
