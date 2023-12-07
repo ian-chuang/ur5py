@@ -39,14 +39,15 @@ def time_from_v(ini_pos, target_pos, target_v, time_per_step):
 
 
 def do_throw(robot, end_pose, instant_vel):
-    current_pose = robot.get_pose(convert=True)
+    current_pose = robot.get_pose(convert=False)
+    instant_vel = np.array(instant_vel)
     # current_pose[3:] = end_pose[3:]
     # current_pose = np.array([1, 1, 1, 0.32, 0.23, 0.324])
     # end_pose = np.array([3, 3, 2, 0.21, 0.234, 0.98])
     # instant_vel = np.array([0.1, 0.3, 0.5])
     intermediate_pose = np.zeros(6)
-    P = current_pose[:3]
-    A = end_pose[3:]
+    P = np.array(current_pose[:3])
+    A = np.array(end_pose[3:])
     B = end_pose[3:] + instant_vel
     AP = P - A
     AB = B - A
