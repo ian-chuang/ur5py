@@ -25,14 +25,13 @@ def find_waypoints(current_pose, start, goal, total_t):
             0
             - launch_vector[0] * release_p[0]
             - launch_vector[1] * release_p[1]
-            - launch_vector[2]
-            - release_p[2]
+            - launch_vector[2] * release_p[2]
         )
         arb_point = np.array(
             [0, 0, -D / launch_vector[2]]
         )  # an arbitary point on the plane
         v1_on_plane = release_p - arb_point
-        v2_on_plane = np.cross(v1_on_plane, launch_vector)
+        v2_on_plane = np.cross(launch_vector, v1_on_plane)
 
         # normalize
         launch_vector = launch_vector / np.linalg.norm(launch_vector)
@@ -67,9 +66,9 @@ def find_waypoints(current_pose, start, goal, total_t):
 
     # create transformation matrix
     m = np.eye(4)
-    launch_points = [[-0.6, 0.2, 0], [-0.7, 0.3, 0.2]]
+    launch_points = np.array([[-0.6, 0.2, 0], [-0.7, 0.3, 0.2]])
     m[:3, :3] = find_release_orientation(launch_points)
-    m[:3, 3] = np.vstack(launch_points[0])
+    m[:3, 3] = np.vstack(launch_points[0]).reshape(-1)
     
     return poses, m
 
