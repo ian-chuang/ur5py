@@ -66,15 +66,18 @@ def do_throw(robot: UR5Robot, end_pose, instant_vel):
         [poses, np.repeat(intermediate_pose[3:].reshape(1, -1), len(poses), 0)]
     )
     release = int(len(poses) // 2)
+    angles = []
     for i, p in enumerate(poses):
         curr_time = time.time()
-        robot.servo_pose(p, time=0.02, convert=False)
+        robot.servo_pose(p, time=0.002, convert=False)
+        angles.append(robot.get_joints())
         if i == release:
             robot.gripper.open()
-        while time.time() - curr_time < 0.02:
+        while time.time() - curr_time < 0.002:
             pass
-        if i > release + 300:
-            break
+        # if i > release + 300:
+        #     break
+    np.savetxt("move.txt", angles)
     robot.stop_joint(5)
 
 
