@@ -1,6 +1,6 @@
 import numpy as np
 
-from ur5py.ur5 import UR5Robot
+from ur5py.ur5 import UR5Robot, RT2UR, UR2RT
 import time
 import pdb
 import roboticstoolbox
@@ -45,27 +45,14 @@ def time_from_v(ini_pos, target_pos, target_v, time_per_step):
     return final_traj
 
 
-def do_throw(robot, end_pose, instant_vel):
-    current_pose = robot.get_pose(convert=False)
+def do_throw(robot: UR5Robot, end_pose, instant_vel):
+    robot.move_pose(end_pose)
     instant_vel = np.array(instant_vel)
-    # current_pose[3:] = end_pose[3:]
-    # current_pose = np.array([1, 1, 1, 0.32, 0.23, 0.324])
-    # end_pose = np.array([3, 3, 2, 0.21, 0.234, 0.98])
-    # instant_vel = np.array([0.1, 0.3, 0.5])
-    intermediate_pose = np.zeros(6)
-    P = np.array(current_pose[:3])
-    A = np.array(end_pose[3:])
-    B = end_pose[3:] + instant_vel
-    AP = P - A
-    AB = B - A
-    intermediate_pose[:3] = A + np.dot(AP, AB) / np.dot(AB, AB) * AB
-    intermediate_pose[3:] = end_pose[3:]
+    intermediate_pose = UR2RT(end_pose)
+    intermediate_pose[:3] -= instant_vel / np.linalg.norm(instant_vel) * 0.3
+    robot.move_pose(intermediate_pose, convert=False)
     poses = time_from_v(intermediate_pose, end_pose, instant_vel, 0.002)
     release = int(len(poses) // 2)
-    poses = np.hstack(
-        [poses, np.repeat(intermediate_pose[3:].reshape(1, -1), len(poses), 0)]
-    )
-    robot.move_pose(intermediate_pose, convert=False)
     for i, p in enumerate(poses):
         curr_time = time.time()
         robot.servo_pose(p, time=0.002, convert=False)
