@@ -5,11 +5,16 @@ import time
 import pdb
 import roboticstoolbox
 from autolab_core import RigidTransform
-from roboticstoolbox.tools.trajectory import quintic_func, quintic
+from roboticstoolbox.tools.trajectory import (
+    quintic_func,
+    quintic,
+    trapezoidal,
+    trapezoidal_func,
+)
 
 
 def max_v(ini_pos, target_pos, t):
-    f = quintic_func(ini_pos, target_pos, t)
+    f = trapezoidal_func(ini_pos, target_pos, t)
     _, max_v, _ = f(t / 2)
     return max_v
 
@@ -21,7 +26,7 @@ def time_from_v(ini_pos, target_pos, target_v, time_per_step):
     min = dist / target_v_norm
     max = min * 2
     target_t = -1
-    for t in np.arange(min, max, step=0.01):
+    for t in np.arange(min, max, step=0.001):
         velocity = np.zeros(3)
         for i in range(3):
             velocity[i] = max_v(ini_pos[i], virtual_target[i], t)
@@ -32,8 +37,10 @@ def time_from_v(ini_pos, target_pos, target_v, time_per_step):
 
     final_traj = np.zeros((num_of_points, 3))
     for i in range(3):
-        trajectory = quintic(ini_pos[i], virtual_target[i], num_of_points)
+        trajectory = trapezoidal(ini_pos[i], virtual_target[i], num_of_points)
+        print(num_of_points)
         positions = trajectory.q
+        print(positions)
         final_traj[:, i] = positions
     return final_traj
 
