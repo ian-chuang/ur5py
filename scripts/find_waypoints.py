@@ -60,8 +60,9 @@ def find_waypoints(current_pose, start, goal, total_t):
     
     # create transformation matrix
     m = np.eye(4)
-    m[:3, :3] = find_release_orientation(poses[50:])
-    m[:3, 3] = np.vstack(poses[0])
+    launch_points = [[-0.6, 0.2, 0], [-0.7, 0.3, 0.2]]
+    m[:3, :3] = find_release_orientation(launch_points)
+    m[:3, 3] = np.vstack(launch_points[0])
     
     return poses, m
 
