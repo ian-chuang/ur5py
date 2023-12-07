@@ -85,7 +85,7 @@ goal = np.array([0, -3, 0])
 total_time = 1
 poses_temp, m, v_i = find_waypoints(current_pose, start, goal, total_time)
 # transform m to end pose
-tsfm = RigidTransform(m[:3, :3], m[:, 3])
+tsfm = RigidTransform(m[:3, :3], m[:3, 3])
 robot.move_pose(tsfm)
 # poses = find_waypoints(current_pose, start, goal, total_time)
 poses = np.linspace(current_pose, end_pose, 250)
