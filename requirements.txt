@@ -1,2 +1,3 @@
+cowsay
 ur-rtde
 autolab_core
