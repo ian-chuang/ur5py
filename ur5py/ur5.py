@@ -4,7 +4,6 @@ import rtde_receive
 import rtde_io
 from ur5py.robotiq_gripper_control import RobotiqGripper
 from ur5py.socket_robotiq import SocketRobotiq
-from ur5py.suction_robotiq import SuctionRobotiq
 from ur5py.succ_robotiq import SuccRobotiq
 import time
 import numpy as np
@@ -266,7 +265,7 @@ class UR5Robot:
             )
 
         dire = [direc_x, direc_y, direc_z, 0, 0, 0]
-        self.ur_c.speedL(dire, accelaration=acc)
+        self.ur_c.speedL(dire, acceleration=acc)
         time.sleep(0.5)
         startforce = np.array(self.ur_r.getActualTCPForce())
         while True:

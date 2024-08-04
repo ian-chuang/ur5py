@@ -17,7 +17,7 @@ class SuccRobotiq(object):
         self.s_gripper = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s_gripper.connect((host_ip, gripper_port))
         self.nonce_byte = 0
-        self.calibrate()
+        # self.calibrate()
 
     def calibrate(self, advanced=True):
         self.s_gripper.sendall(b"SET ACT 0\n")
@@ -28,26 +28,36 @@ class SuccRobotiq(object):
 
         if advanced:
             self.s_gripper.sendall(b"SET MOD 1\n")
+            self.s_gripper.recv(4)
 
         cowsay.cow("Calibrated to default settings!")
 
     def open(self):
-        self.nonce_byte += 4
+        self.s_gripper.sendall(b"SET GTO 1\n")
+        self.s_gripper.recv(4)
+        self.s_gripper.sendall(b"SET FOR 0\n")
         self.s_gripper.sendall(b"SET POS 255\n")
+        self.s_gripper.recv(4)
 
     def close(self):
         # self.nonce_byte += 4
+        self.s_gripper.sendall(b"SET ACT 1\n")
+        self.s_gripper.recv(4)
         self.s_gripper.sendall(b"SET GTO 1\n")
         self.s_gripper.recv(4)
-        self.s_gripper.sendall(b"SET PR 255\n")
+        self.s_gripper.sendall(b"SET FOR 80\n")
+        self.s_gripper.recv(4)
+        # self.s_gripper.sendall(b"SET SPE 90\n")
+        # self.s_gripper.recv(4)
         self.s_gripper.sendall(b"SET POS 0\n")
+        self.s_gripper.recv(4)
 
     def get_pos(self):
         if self.nonce_byte > 0:
             self.s_gripper.recv(self.nonce_byte)
         self.nonce_byte = 0
         self.s_gripper.sendall(b"GET OBJ")
-        return self.s_gripper.recv(4)
+        return self.s_gripper.recv(5)
 
     def set_pos(self, pos: int):
         self.nonce_byte += 4
